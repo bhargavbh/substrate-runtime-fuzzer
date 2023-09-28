@@ -1,17 +1,24 @@
 use codec::{DecodeLimit, Encode};
+use log::info;
 use frame_support::{
     dispatch::GetDispatchInfo,
     pallet_prelude::Weight,
     traits::{IntegrityTest, TryState, TryStateSelect},
     weights::constants::WEIGHT_REF_TIME_PER_SECOND,
 };
+
+use frame_benchmarking::v1::{account, benchmarks, whitelisted_caller, BenchmarkError};
+
 use node_template_runtime::{
     AccountId, AllPalletsWithSystem, BlockNumber, Executive, Runtime, RuntimeCall, RuntimeOrigin,
     UncheckedExtrinsic, SLOT_DURATION,
 };
+
+use frame_system::RawOrigin;
+
 use sp_consensus_aura::{Slot, AURA_ENGINE_ID};
 use sp_runtime::{
-    traits::{Dispatchable, Header},
+    traits::{Dispatchable, Header, Bounded},
     Digest, DigestItem, Storage,
 };
 use std::time::{Duration, Instant};
@@ -180,6 +187,8 @@ fn main() {
                 }
             })
             .collect();
+        
+        //println!("Computed the extrinsic");
 
         if extrinsics.is_empty() {
             return;
@@ -270,6 +279,10 @@ fn main() {
             // We compute the weight to avoid overweight blocks.
             externalities.execute_with(|| {
                 call_weight = extrinsic.get_dispatch_info().weight;
+                #[cfg(not(fuzzing))]
+                //println!("\n Call Weight is: {:?}", call_weight.ref_time());
+
+                println!("\n Call Weight for extrinsic {:?} is: {:?}", extrinsic,call_weight.proof_size());
             });
 
             current_weight = current_weight.saturating_add(call_weight);
@@ -286,29 +299,36 @@ fn main() {
                     println!("\n    origin:     {:?}", origin_account);
                     println!("    call:       {:?}", extrinsic);
                 }
+                let runtime_origin_root = RuntimeOrigin::root().into();
+                println!("\n RawORigin is : {:?}", runtime_origin_root);
                 let _res = extrinsic
-                    .clone()
-                    .dispatch(RuntimeOrigin::signed(origin_account));
+                    .clone().dispatch(RuntimeOrigin::<AccountId>::root());
+                    // .clone().dispatch(RawOrigin::<AccountId>::Root.into());
+                    //.dispatch(RuntimeOrigin::signed(origin_account));
                 #[cfg(not(fuzzing))]
                 println!("    result:     {:?}", _res);
 
                 // Uncomment to print events for debugging purposes
-                /*
+                
                 #[cfg(not(fuzzing))]
                 {
                     let all_events = node_template_runtime::System::events();
+                    let already_seen = all_events.len();
                     let events: Vec<_> = all_events.clone().into_iter().skip(already_seen).collect();
-                    already_seen = all_events.len();
                     println!("  events:     {:?}\n", events);
                 }
-                */
+                
             });
+            #[cfg(not(fuzzing))]
+            println!("real time passed is: {:?}", now.elapsed());
+            
 
             elapsed += now.elapsed();
         }
 
         #[cfg(not(fuzzing))]
         println!("\n  time spent: {:?}", elapsed);
+                
         if elapsed.as_secs() > MAX_TIME_FOR_BLOCK {
             panic!("block execution took too much time")
         }
