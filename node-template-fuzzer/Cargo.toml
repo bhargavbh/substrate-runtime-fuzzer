@@ -9,9 +9,17 @@ ziggy = { version = "0.6", default-features = false }
 node-template-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43", default-features = false }
 
 codec = { version = "3.4.0", features = ["derive", "max-encoded-len"], default-features = false, package = "parity-scale-codec" }
+log = { version = "0.4.20"}
 
 frame-support = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43", default-features = false }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43", default-features = false }
+#frame-system-benchmarking = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43", default-features = false }
+#frame-benchmarking = { path = "../../polkadot-sdk-liftfuzz/substrate/frame/benchmarking/", default-features = false}
+#frame-benchmarking = { path = "../../polkadot-sdk-liftfuzz/substrate/frame/benchmarking", default-features = false }
+#frame-system-benchmarking = { path = "../../polkadot-sdk-liftfuzz/substrate/frame/system/benchmarking", default-features = false }
+
+
 
 sp-core = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43", default-features = false }
@@ -25,18 +33,27 @@ pallet-balances = { git = "https://github.com/paritytech/substrate.git", branch 
 pallet-grandpa = { git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43", default-features = false }
 
 [features]
-default = ["std", "try-runtime"]
+default = ["std","try-runtime", "runtime-benchmarks"]
 std = [
     "node-template-runtime/std",
-	"codec/std",
-	"sp-runtime/std",
-	"frame-support/std",
-	"pallet-timestamp/std",
-	"sp-state-machine/std",
-	"sp-consensus-aura/std",
+    "codec/std",
+    "sp-runtime/std",
+    "frame-support/std",
+    "pallet-timestamp/std",
+    "sp-state-machine/std",
+    "sp-consensus-aura/std",
+]
+runtime-benchmarks = [
+    "frame-benchmarking/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+    "pallet-balances/runtime-benchmarks",
+    "pallet-timestamp/runtime-benchmarks",
+    "pallet-grandpa/runtime-benchmarks",
+    "sp-runtime/runtime-benchmarks",
 ]
 try-runtime = [
     "node-template-runtime/try-runtime",
-	"frame-support/try-runtime",
-	"pallet-timestamp/try-runtime",
+    "frame-support/try-runtime",
+    "pallet-timestamp/try-runtime",
 ]
